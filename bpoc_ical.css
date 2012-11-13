@@ -1,0 +1,12 @@
+span.bpoc_ical,
+ul.links li.bpoc_ical {
+  margin: 10px;
+}
+
+/* SDMA weekly calendar view */
+ul.links li.bpoc_ical {
+  position: relative;
+  top: 5px;
+}
+
+

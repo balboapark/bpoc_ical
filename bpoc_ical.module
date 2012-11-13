@@ -1,0 +1,132 @@
+<?php
+
+/**
+* @file
+* Create an 'Add to Outlook' link on events that opens an .ics file.
+*/
+
+/**
+* Implements hook_menu().
+*/
+function bpoc_ical_menu() {
+  $items['node/%node/add_to_calendar.ics'] = array(
+    'title' => 'Add to Outlook',
+    'page callback' => 'bpoc_ical_download',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+* Implements hook_theme().
+*/
+function bpoc_ical_theme() {
+  return array(
+    'bpoc_ical_button' => array(
+      'arguments' => array(
+        'node' => NULL,
+        'teaser' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+* Implements hook_link().
+*/
+function bpoc_ical_link($type, $node=NULL, $teaser = FALSE){
+  if ($type == 'node' && $node->type == 'calendar_event'){
+    $links['bpoc_ical'] = array(
+    'title' => _bpoc_ical_create_button($node, $teaser),
+    'html' => TRUE,
+    'weight' => -1,
+     //  'title' => t("Add to Outlook"),
+     //  'href' => 'node/' . $node->nid . '/add_to_calendar.ics',
+    );
+    return $links;
+  }
+}
+
+/**
+* Implements hook_link_alter().
+*/
+function bpoc_ical_link_alter(&$links, $node, $comment = NULL) {
+  foreach ($links as $key => $link) {
+    if ($key == 'bpoc_ical') {
+      $links[$key]['weight'] = 1;
+    } else {
+      $links[$key]['weight'] = 2;
+    }
+    $weight[$key] = $links[$key]['weight'];
+  }
+  array_multisort($weight, SORT_ASC, $links);
+}
+
+/**
+* Implements hook_views_api().
+*/
+function bpoc_ical_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'bpoc_ical'),
+  );
+}
+
+function _bpoc_ical_create_button($node=NULL, $TEASER=FALSE) {
+  return theme('bpoc_ical_button', $node, $teaser);
+}
+
+function theme_bpoc_ical_button($node, $teaser) {
+  drupal_add_css(drupal_get_path('module', 'bpoc_ical') . '/bpoc_ical.css');
+     //  'title' => t("Add to Outlook"),
+     //  'href' => 'node/' . $node->nid . '/add_to_calendar.ics',
+  $href = '/node/' . $node->nid . '/add_to_calendar.ics';
+  $button  = "<a href=\"$href\">";
+  $button .= "<img src=\"/" . drupal_get_path('module', 'bpoc_ical') . "/calendar_add.png" . "\"";
+  $button .= " title=\"Add to Calendar\">";
+  $button .= '</a>';
+  return $button;
+}
+
+/**
+* Menu callback. Create the .ics file.
+*/
+function bpoc_ical_download($node) {
+  drupal_set_header('Content-Type: text/calendar; charset=utf-8;');
+  drupal_set_header('Content-Disposition: inline; filename="add_to_calendar.ics";');
+
+  $title = check_plain($node->title);
+  $description = t("Read more at !link", array('!link' => url('node/' . $node->nid, array('absolute' => TRUE))));
+  $location = check_plain($node->field_location[0]['value']);
+  $dtstart = _bpoc_ical_date_parse($node->field_date[0]['value']);
+  $dtend = _bpoc_ical_date_parse($node->field_date[0]['value2']);
+  print "BEGIN:VCALENDAR
+PRODID:-//Calendar//Calendar Event//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+DTSTAMP:$dtstart
+BEGIN:VEVENT
+DTSTART:$dtstart
+DTEND:$dtend
+SUMMARY:$title
+DESCRIPTION:$description
+LOCATION:$location
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR";
+  exit();
+}
+
+/**
+* Convert dates to the required format for ics.
+*/
+function _bpoc_ical_date_parse($date) {
+  $date = date_convert($date, DATE_ISO, DATE_UNIX, date_default_timezone_get());
+  $date = format_date($date, 'custom', 'Ymd His');
+  return str_replace(' ', 'T', $date);
+}
+
+
