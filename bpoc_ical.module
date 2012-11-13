@@ -2,7 +2,7 @@
 
 /**
 * @file
-* Create an 'Add to Outlook' link on events that opens an .ics file.
+* Create an 'Add to Calendar' link on events that opens an .ics file.
 */
 
 /**
@@ -10,7 +10,7 @@
 */
 function bpoc_ical_menu() {
   $items['node/%node/add_to_calendar.ics'] = array(
-    'title' => 'Add to Outlook',
+    'title' => 'Add to Calendar',
     'page callback' => 'bpoc_ical_download',
     'page arguments' => array(1),
     'access callback' => 'node_access',
@@ -42,9 +42,6 @@ function bpoc_ical_link($type, $node=NULL, $teaser = FALSE){
     $links['bpoc_ical'] = array(
     'title' => _bpoc_ical_create_button($node, $teaser),
     'html' => TRUE,
-    'weight' => -1,
-     //  'title' => t("Add to Outlook"),
-     //  'href' => 'node/' . $node->nid . '/add_to_calendar.ics',
     );
     return $links;
   }
@@ -81,8 +78,6 @@ function _bpoc_ical_create_button($node=NULL, $TEASER=FALSE) {
 
 function theme_bpoc_ical_button($node, $teaser) {
   drupal_add_css(drupal_get_path('module', 'bpoc_ical') . '/bpoc_ical.css');
-     //  'title' => t("Add to Outlook"),
-     //  'href' => 'node/' . $node->nid . '/add_to_calendar.ics',
   $href = '/node/' . $node->nid . '/add_to_calendar.ics';
   $button  = "<a href=\"$href\">";
   $button .= "<img src=\"/" . drupal_get_path('module', 'bpoc_ical') . "/calendar_add.png" . "\"";
